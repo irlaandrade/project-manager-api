@@ -10,6 +10,7 @@ import { HelpersModule } from './helpers/helpers.module';
 // import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 // import { AuthGuardService } from './auth/auth-guard/auth-guard.service';
+import { AuthModule } from './auth/auth.module';
 // import * as redisStore from 'cache-manager-redis-store';
 
 @Module({
@@ -19,6 +20,7 @@ import { APP_GUARD } from '@nestjs/core';
     UsersModule,
     TypeOrmConfigModule,
     HelpersModule,
+    AuthModule,
     // AuthModule,
     // CacheModule.register({
     //   isGlobal: true,
