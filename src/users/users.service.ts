@@ -4,7 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-// import { hashSync } from 'bcrypt';
+import { hashSync } from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -15,17 +15,17 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  // create(createUserDto: CreateUserDto) {
-  //   const hashPassword = hashSync(
-  //     createUserDto.password,
-  //     this.DEFAULT_SALT_ROUNDS,
-  //   );
+  create(createUserDto: CreateUserDto) {
+    const hashPassword = hashSync(
+      createUserDto.password,
+      this.DEFAULT_SALT_ROUNDS,
+    );
 
-  //   return this.usersRepository.save({
-  //     ...createUserDto,
-  //     password: hashPassword,
-  //   });
-  // }
+    return this.usersRepository.save({
+      ...createUserDto,
+      password: hashPassword,
+    });
+  }
 
   findOne(id: number) {
     return this.usersRepository.findOneBy({ id });
