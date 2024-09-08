@@ -9,7 +9,7 @@ import { HelpersModule } from './helpers/helpers.module';
 // import { CacheModule } from '@nestjs/cache-manager';
 // import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
-// import { AuthGuardService } from './auth/auth-guard/auth-guard.service';
+import { AuthGuardService } from './auth/auth-guard/auth-guard.service';
 import { AuthModule } from './auth/auth.module';
 // import * as redisStore from 'cache-manager-redis-store';
 
@@ -33,10 +33,10 @@ import { AuthModule } from './auth/auth.module';
   controllers: [AppController],
   providers: [
     AppService,
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: AuthGuardService,
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuardService,
+    },
   ],
 })
 export class AppModule {}

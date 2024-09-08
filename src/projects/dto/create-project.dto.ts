@@ -1,12 +1,9 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty } from 'class-validator';
 
 export class CreateProjectDto {
   @IsNotEmpty({ message: 'O nome do projeto não pode ser vazio' })
-  //@IsString()
   name: string;
 
-  @IsNotEmpty({ message: "A descrição do projeto precisa de ser definido" })
-  //@IsString()
+  @IsNotEmpty({ message: 'A descrição do projeto não pode ser vazia' })
   description: string;
-
 }
