@@ -5,51 +5,76 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { ProjectsService } from 'src/projects/projects.service';
-
+import { PageService } from 'src/helpers/pagination/page.service';
+import { FilterDto } from 'src/helpers/pagination/dto/filter.dto';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class TasksService {
-  // constructor(
-  //   @InjectRepository(Task)
-  //   private readonly taskRepository: Repository<Task>,
-  //   @InjectRepository(Project)
-  //   private readonly projectRepository: Repository<Project>,
-  // ) { }
-
   constructor(
     @InjectRepository(Task)
     private readonly tasksRepository: Repository<Task>,
     private readonly projectsService: ProjectsService,
+    private readonly pageService: PageService,
+    private readonly usersService: UsersService,
   ) {}
 
-  // async create(createTaskDto: CreateTaskDto) {
-  //   const project = await this.projectsRepository.findOneByOrFail({
-  //     id: createTaskDto.projectId,
-  //   });
-  //   return this.tasksRepository.save({ ...createTaskDto, project });
-  // }
+  async create(username: string, createTaskDto: CreateTaskDto) {
+    const user = await this.usersService.findOneByOrFail({
+      email: username,
+    });
 
-  async create(createTaskDto: CreateTaskDto) {
     const project = await this.projectsService.findOneByOrFail(
+      username,
       createTaskDto.projectId,
     );
-    return this.tasksRepository.save({ ...createTaskDto, project });
+    return this.tasksRepository.save({ ...createTaskDto, project, user });
   }
 
-  findAll() {
-    return this.tasksRepository.find();
+  async findAll(username: string) {
+    const user = await this.usersService.findOneByOrFail({
+      email: username,
+    });
+
+    return this.tasksRepository.find({ where: { user } });
   }
 
-  findOne(id: number) {
-    return this.tasksRepository.findOneBy({ id });
+  async findAllPaginated(username: string, filter?: FilterDto) {
+    const user = await this.usersService.findOneByOrFail({
+      email: username,
+    });
+
+    if (!filter) {
+      return this.findAll(username);
+    }
+
+    return this.pageService.paginate(
+      this.tasksRepository,
+      {
+        page: filter.page,
+        pageSize: filter.pageSize,
+      },
+      { user },
+    );
   }
 
-  update(id: number, updateTaskDto: UpdateTaskDto) {
-    return this.tasksRepository.update(id, updateTaskDto);
+  async findOne(username: string, id: number) {
+    const user = await this.usersService.findOneByOrFail({
+      email: username,
+    });
+
+    return this.tasksRepository.findOneBy({ id, user });
   }
-  
+
+  async update(username: string, id: number, updateTaskDto: UpdateTaskDto) {
+    const user = await this.usersService.findOneByOrFail({
+      email: username,
+    });
+
+    return this.tasksRepository.update({ id, user }, updateTaskDto);
+  }
+
   remove(id: number) {
     return this.tasksRepository.delete(id);
   }
-
 }

@@ -1,48 +1,55 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseInterceptors } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  // UseInterceptors,
+} from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { FilterDto } from 'src/helpers/pagination/dto/filter.dto';
-import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
+// import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 
 @Controller('projects')
 export class ProjectsController {
-  constructor(private readonly projectsService: ProjectsService) { }
+  constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
-  create(@Body() createProjectDto: CreateProjectDto) {
-    return this.projectsService.create(createProjectDto);
-  }
+  create(@Req() request, @Body() createProjectDto: CreateProjectDto) {
+    const username = request.user.username;
 
-  // @Get()
-  // findAll() {
-  //   return this.projectsService.findAll();
-  // }
-
-  @Get()
-  @UseInterceptors(CacheInterceptor)
-  @CacheTTL(30000)
-  findAll(@Query() filter?: FilterDto) {
-    console.log('buscando projetos....');
-
-    return this.projectsService.findAllPaginated(filter);
+    return this.projectsService.create(username, createProjectDto);
   }
 
   @Get()
-  findOne(@Param('id') id: number) {
-    return this.projectsService.findOne(id);
+  // @UseInterceptors(CacheInterceptor)
+  // @CacheTTL(30000)
+  findAll(@Req() request, @Query() filter?: FilterDto) {
+    return this.projectsService.findAllPaginated(request.user.username, filter);
+  }
+
+  @Get(':id')
+  // @UseInterceptors(CacheInterceptor)
+  // @CacheTTL(30000)
+  findOne(@Req() request, @Param('id') id: number) {
+    return this.projectsService.findOne(request.user.username, id);
   }
 
   @Patch(':id')
   update(
+    @Req() request,
     @Param('id') id: number,
-    @Body() updateProjectDto: UpdateProjectDto) {
-    return this.projectsService.update(+id, updateProjectDto);
+    @Body() updateProjectDto: UpdateProjectDto,
+  ) {
+    return this.projectsService.update(
+      request.user.username,
+      id,
+      updateProjectDto,
+    );
   }
-
-  @Delete(':id')
-  remove(@Param(':id') id: string) {
-    return this.projectsService.remove(+id);
-  }
-
 }

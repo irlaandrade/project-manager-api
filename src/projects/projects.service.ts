@@ -6,6 +6,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { PageService } from 'src/helpers/pagination/page.service';
 import { FilterDto } from 'src/helpers/pagination/dto/filter.dto';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class ProjectsService {
@@ -13,45 +14,78 @@ export class ProjectsService {
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
     private readonly pageService: PageService,
+    private readonly userService: UsersService,
   ) {}
 
-  create(createProjectDto: CreateProjectDto) {
-    return this.projectRepository.save(createProjectDto);
+  async create(username: string, createProjectDto: CreateProjectDto) {
+    const user = await this.userService.findOneByOrFail({
+      email: username,
+    });
+
+    return this.projectRepository.save({ ...createProjectDto, user });
   }
 
-  findAll() {
-    return this.projectRepository.find();
+  async findAll(username: string) {
+    const user = await this.userService.findOneByOrFail({
+      email: username,
+    });
+
+    return this.projectRepository.find({ where: { user } });
   }
 
-  findOne(id: number) {
+  async findAllPaginated(username: string, filter?: FilterDto) {
+    const user = await this.userService.findOneByOrFail({
+      email: username,
+    });
+
+    if (!filter) {
+      return this.findAll(username);
+    }
+
+    return this.pageService.paginate(
+      this.projectRepository,
+      {
+        page: filter.page,
+        pageSize: filter.pageSize,
+      },
+      { user },
+    );
+  }
+
+  async findOne(username: string, id: number) {
+    const user = await this.userService.findOneByOrFail({
+      email: username,
+    });
+
     return this.projectRepository.findOne({
-      where: { id },
+      where: { id, user },
       relations: {
         tasks: true,
       },
     });
   }
 
-  findOneByOrFail(id: number) {
-    return this.projectRepository.findOneByOrFail({ id });
+  async findOneByOrFail(username: string, id: number) {
+    const user = await this.userService.findOneByOrFail({
+      email: username,
+    });
+
+    return this.projectRepository.findOneByOrFail({ id, user });
   }
 
-  update(id: number, updateProjectDto: UpdateProjectDto) {
-    return this.projectRepository.update(id, updateProjectDto);
+  async update(
+    username: string,
+    id: number,
+    updateProjectDto: UpdateProjectDto,
+  ) {
+    const user = await this.userService.findOneByOrFail({
+      email: username,
+    });
+
+    return this.projectRepository.update({ id, user }, updateProjectDto);
   }
 
   remove(id: number) {
-    return this.projectRepository.delete(id); //Delete físico
-  }
-
-  findAllPaginated(filter?: FilterDto) {
-    if (!filter) {
-      return this.findAll();
-    }
-
-    return this.pageService.paginate(this.projectRepository, {
-      page: filter.page,
-      pageSize: filter.pageSize,
-    });
+    return this.projectRepository.delete(id); // DETELE físico
   }
 }
