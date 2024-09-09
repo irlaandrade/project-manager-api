@@ -13,13 +13,21 @@ import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { FilterDto } from 'src/helpers/pagination/dto/filter.dto';
+import { ApiBearerAuth, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import { Project } from './entities/projects.entity';
 // import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 
+@ApiBearerAuth()
+@ApiTags('projects')
 @Controller('projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
+  @ApiCreatedResponse({
+    description: 'O projeto foi criado com sucesso',
+    type: Project,
+  })
   create(@Req() request, @Body() createProjectDto: CreateProjectDto) {
     const username = request.user.username;
 
